@@ -4,7 +4,7 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 10. 四月 2019 10:20
+%%% Created : 15. 四月 2019 17:52
 %%%-------------------------------------------------------------------
 -module(sc_sup).
 -author("Administrator").
@@ -12,18 +12,18 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0, start_child/2, init/1]).
+-export([start_link/0, init/1]).
 
 -define(SERVER, ?MODULE).
 
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
-
-start_child(Value, LeaseTime) ->
-    supervisor:start_child(?SERVER, [Value, LeaseTime]).
+	supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 init([]) ->
-    Element = {sc_element, {sc_element, start_link, []}, temporary, brutal_kill, worker, [sc_element]},
-    Children = [Element],
-    RestartStrategy = {simple_one_for_one, 0, 1},
-    {ok, {RestartStrategy, Children}}.
+	ElementSup = {sc_element_sup, {sc_element_sup, start_link, []}, permanent, 2000, supervisor, [sc_element]},
+	EventManager = {sc_event, {sc_event, start_link, []}, permanent, 2000, worker, [sc_event]},
+	Children = [ElementSup, EventManager],
+	RestartStrategy = {one_for_one, 4, 3600},
+	{ok, {RestartStrategy, Children}}.
+
+
