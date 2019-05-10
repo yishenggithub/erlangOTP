@@ -42,5 +42,17 @@ code_change(_OldVsn, State, _Extra) ->
 	{ok, State}.
 
 handle_data(Socket, RawData, State) ->
-	gen_tcp:send(Socket, RawData),
+%%	gen_tcp:send(Socket, RawData),
+	try
+		{Function, RawArgList} =
+			lists:splitwith(fun(C) -> C =/= $[ end, RawData),
+		{ok, Toks, _Line} = erl_scan:string(RawArgList ++ ".", 1),
+		{ok, Args} = erl_parse:parse_term(Toks),
+		Result = apply(simple_cache, list_to_atom(Function), Args),
+		gen_tcp:send(Socket, io_lib:fwrite("OK:~p.~n", [Result]))
+	catch
+		_Class:Err ->
+			gen_tcp:send(Socket, io_lib:fwrite("ErrOr:~p.~n", [Err]))
+	end,
 	State.
+
